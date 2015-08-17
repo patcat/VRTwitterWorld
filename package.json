@@ -1,6 +1,6 @@
 {
-  "name": "VRTweetVisualiser",
-  "version": "0.0.1",
+  "name": "VRTwitterWorld",
+  "version": "0.1.0",
   "description": "A VR 3D tweet visualiser using Three.js and WebGL",
   "main": "index.js",
   "scripts": {
