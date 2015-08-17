@@ -36,29 +36,14 @@
           container,
           effect,
           controls,
-          clock,
-
-          // Particles
-          totalParticles = 160,
-          maxParticleSize = 200,
-          particleRotationSpeed = 0,
-          particleRotationDeg = 0,
-          lastColorRange = [0, 0.3],
-          currentColorRange = [0, 0.3],
-
-          // Viewer
-          viewer,
-          viewerTexture,
-          viewers = [], // All our sparkling things
-
-          // Text display
-          tweetText = new THREE.TextGeometry(),
-          tweetTextMesh = new THREE.Mesh(),
-
-          // Twitter API set up
-          tweets = [],
-
           clock = new THREE.Clock(),
+
+          // Towers
+          tweetTowers = new THREE.Object3D(),
+          particleTexture,
+          particleMaterial,
+          maxTowerCount = 8000,
+          range = 150,
 
           socket = io();
 
@@ -66,23 +51,22 @@
 
       socket.on('tweet', function(tweet) {
         //console.log('Tweet was ', tweet);
-        console.log(tweet.text.length);
+        //console.log(tweet.text.length);
         generateViewer({
           color: parseInt('0x'+ tweet.user.profile_background_color),
-          texture: viewerTexture,
           dimensions: {
             x: 98,
             y: 48
           },
           scene: scene,
           startingCoords: {
-            x: getRandomArbitrary(-500, 500),
+            x: getRandomArbitrary(-1*range, range),
             y: 0,
-            z: getRandomArbitrary(-500, 500)
+            z: getRandomArbitrary(-1*range, range)
           },
           speed: {
             x: 10,
-            y: 10,
+            y: 5,
             z: 10
           },
           size: {
@@ -103,17 +87,6 @@
           startTime: clock.getElapsedTime()
         });
       });
-
-      function initViewerDefaults() {
-        var viewerTexture = THREE.ImageUtils.loadTexture('textures/pixelalpha.png'),
-            viewerMaterial = new THREE.SpriteMaterial({
-              map: viewerTexture,
-              color: 0xffffff
-            });
-        viewerTexture.wrapS = THREE.RepeatWrapping;
-        viewerTexture.wrapT = THREE.RepeatWrapping;
-        viewerTexture.repeat.set(64, 64);
-      }
 
       function init() {
         scene = new THREE.Scene();
@@ -154,37 +127,16 @@
         }
         window.addEventListener('deviceorientation', setOrientationControls, true);
 
-        // Lighting
-        var light = new THREE.PointLight(0x999999, 2, 100);
-        light.position.set(50, 50, 50);
-        //scene.add(light);
+        particleTexture = THREE.ImageUtils.loadTexture('textures/particle-new.png');
 
-        var lightScene = new THREE.PointLight(0x999999, 2, 100);
-        lightScene.position.set(0, 5, 0);
-        //scene.add(lightScene);
-
-        initViewerDefaults();
+        scene.add(tweetTowers);
 
         animate();
       }
 
       function generateViewer(options) {
-        var viewerMaterial = new THREE.MeshBasicMaterial({
-          color: options.color,
-          specular: 0xffffff,
-          alphaMap: options.texture
-        });
-        viewerMaterial.transparent = true;
-
-        var particles = new THREE.Object3D();
-        //var particles = new THREE.Geometry();
-
-        var particleTexture = THREE.ImageUtils.loadTexture('textures/particle-new.png'),
-            spriteMaterial = new THREE.SpriteMaterial({
-            map: particleTexture,
-            color: options.color
-          });
-
+        var towerGeometry = new THREE.Geometry();
+        
         var particleMovements = [
           {
             start: 0,
@@ -200,10 +152,6 @@
             startingCoords = options.startingCoords;
 
         for (var i = 0; i < options.size.y; i++) {
-          var sprite = new THREE.Sprite(spriteMaterial);
-
-          sprite.scale.set(32, 32, 1.0);
-
           if (particleMovements[currentParticleDirection] && startingCoords) {
             // If we're outside the current particleMovement range and there's another particleMovement to go to, go there.
             if ((particleMovements[currentParticleDirection].start > i || particleMovements[currentParticleDirection].end < i) && currentParticleDirection + 1 < particleMovements.length) {
@@ -216,51 +164,35 @@
               x: startingCoords.x + particleMovements[currentParticleDirection].x * currentLinePos,
               y: startingCoords.y + particleMovements[currentParticleDirection].y * currentLinePos,
               z: startingCoords.z + particleMovements[currentParticleDirection].z * currentLinePos
+            };
+
+            towerGeometry.vertices.push(new THREE.Vector3(currentCoords.x, currentCoords.y, currentCoords.z));
+
+            particleMaterial = new THREE.PointCloudMaterial({
+              map: particleTexture,
+              color: options.color,
+              blending: THREE.AdditiveBlending,
+              opacity: 0.5,
+              transparent: true,
+              size: 4
+            });
+
+            var tower = new THREE.PointCloud(towerGeometry, particleMaterial);
+            tower.sortPoints = true;
+
+            tweetTowers.add(tower);
+            if (tweetTowers.children.length > maxTowerCount) {
+              //tweetTowers.remove(tweetTowers.children[0]);
+              tweetTowers.children[tweetTowers.children.length - maxTowerCount].visible = false;
+              console.log(tweetTowers.children.length);
             }
-
-            sprite.position.set(currentCoords.x, currentCoords.y, currentCoords.z);
           }
-
-          sprite.material.blending = THREE.AdditiveBlending;
-
-          //sprite.visible = false;
-          
-          particles.add(sprite);
 
           currentLinePos++; // Tracks the line position specifically
         }
-
-        particles.position.y = 0;
-
-        particles.position.set(options.groupCoords.x, options.groupCoords.y, options.groupCoords.z);
-
-        particles.startTime = options.startTime;
-        particles.height = options.size.y;
-        particles.animationDone = false;
-
-        viewers.push(particles);
-        options.scene.add(particles);
       }
 
       function animate() {
-        /*var elapsedSeconds = clock.getElapsedTime();
-
-        for (var v = 0; v < viewers.length; v++) {
-          var viewer = viewers[v];
-
-          if (!viewer.animationDone) {
-            for (var i = 0; i < viewer.height; i++) {
-              if (i + viewer.startTime < elapsedSeconds * 60) {
-                viewer.children[0].children[i].visible = true;
-
-                if (i == viewer.height - 1) {
-                  viewer.animationDone = true;
-                }
-              }
-            }
-          }
-        }*/
-
         requestAnimationFrame(animate);
 
         update(clock.getDelta());
@@ -286,7 +218,7 @@
         controls.update(dt);
       }
 
-      function render(dt) {
+      function render() {
         effect.render(scene, camera);
       }
 
@@ -304,24 +236,6 @@
 
       function getRandomArbitrary(min, max) {
         return Math.random() * (max - min) + min;
-      }
-
-      function getURL(url, callback) {
-        var xmlhttp = new XMLHttpRequest();
-
-        xmlhttp.onreadystatechange = function() {
-          if (xmlhttp.readyState == 4) {
-             if (xmlhttp.status == 200){
-                 callback(JSON.parse(xmlhttp.responseText));
-             }
-             else {
-                 console.log('We had an error, status code: ', xmlhttp.status);
-             }
-          }
-        }
-
-        xmlhttp.open('GET', url, true);
-        xmlhttp.send();
       }
     </script>
   </body>

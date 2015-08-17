@@ -4,10 +4,11 @@
   "description": "A VR 3D tweet visualiser using Three.js and WebGL",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "author": "Patrick Catanzariti",
-  "license": "ISC",
+  "repository": "https://github.com/patcat/VRTwitterWorld",
   "dependencies": {
     "body-parser": "^1.13.3",
     "errorhandler": "^1.4.2",
