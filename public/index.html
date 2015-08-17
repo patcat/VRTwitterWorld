@@ -37,14 +37,14 @@
           controls,
           clock = new THREE.Clock(),
 
+          socket = io(),
+
           // Towers
           tweetTowers = new THREE.Object3D(),
           particleTexture,
           particleMaterial,
           maxTowerCount = 6000,
-          range = 100,
-
-          socket = io();
+          range = 100;
 
       init();
 
@@ -56,7 +56,7 @@
             y: 0,
             z: getRandomArbitrary(-1*range, range)
           },
-          speed: 5,
+          speed: 3,
           size: (tweet.text.length / 140) * 100
         });
       });
@@ -110,58 +110,37 @@
       function generateTower(options) {
         var towerGeometry = new THREE.Geometry();
         
-        var particleMovements = [
-          {
-            start: 0,
-            end: options.size,
-            x: 0,
-            y: options.speed,
-            z: 0
-          }
-        ];
-        var currentParticleDirection = 0,
-            currentLinePos = 0,
-            currentCoords = {x: 0, y: 0, z: 0},
-            startingCoords = options.startingCoords;
+        var particleMovements = {
+          start: 0,
+          end: options.size,
+          speed: options.speed
+        };
+        var currentCoords = {x: 0, y: 0, z: 0},
+            startingCoords = options.startingCoords ? options.startingCoords : currentCoords;
 
         for (var i = 0; i < options.size; i++) {
-          if (particleMovements[currentParticleDirection] && startingCoords) {
-            // If we're outside the current particleMovement range and there's another particleMovement to go to, go there.
-            if ((particleMovements[currentParticleDirection].start > i || particleMovements[currentParticleDirection].end < i) && currentParticleDirection + 1 < particleMovements.length) {
-              currentParticleDirection++;
-              startingCoords = currentCoords; // We want it to follow from where we last were.
-              currentLinePos = 0;
-            }
+          currentCoords = {
+            x: startingCoords.x,
+            y: startingCoords.y + particleMovements.speed * i,
+            z: startingCoords.z
+          };
 
-            currentCoords = {
-              x: startingCoords.x + particleMovements[currentParticleDirection].x * currentLinePos,
-              y: startingCoords.y + particleMovements[currentParticleDirection].y * currentLinePos,
-              z: startingCoords.z + particleMovements[currentParticleDirection].z * currentLinePos
-            };
+          towerGeometry.vertices.push(new THREE.Vector3(currentCoords.x, currentCoords.y, currentCoords.z));
 
-            towerGeometry.vertices.push(new THREE.Vector3(currentCoords.x, currentCoords.y, currentCoords.z));
+          particleMaterial = new THREE.PointCloudMaterial({
+            map: particleTexture,
+            color: options.color,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            size: 4
+          });
 
-            particleMaterial = new THREE.PointCloudMaterial({
-              map: particleTexture,
-              color: options.color,
-              blending: THREE.AdditiveBlending,
-              opacity: 0.5,
-              transparent: true,
-              size: 4
-            });
+          var tower = new THREE.PointCloud(towerGeometry, particleMaterial);
 
-            var tower = new THREE.PointCloud(towerGeometry, particleMaterial);
-            tower.sortPoints = true;
-
-            tweetTowers.add(tower);
-            if (tweetTowers.children.length > maxTowerCount) {
-              //tweetTowers.remove(tweetTowers.children[0]);
-              tweetTowers.children[tweetTowers.children.length - maxTowerCount].visible = false;
-              console.log(tweetTowers.children.length);
-            }
+          tweetTowers.add(tower);
+          if (tweetTowers.children.length > maxTowerCount) {
+            tweetTowers.children[tweetTowers.children.length - maxTowerCount].visible = false;
           }
-
-          currentLinePos++; // Tracks the line position specifically
         }
       }
 
