@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Connecting up Google Cardboard to web APIs</title>
+    <title>VR Twitter World</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <style>
@@ -25,7 +25,6 @@
     <script src="./js/StereoEffect.js"></script>
     <script src="./js/DeviceOrientationControls.js"></script>
     <script src="./js/OrbitControls.js"></script>
-    <script src="./js/helvetiker_regular.typeface.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
     <script>
@@ -42,49 +41,23 @@
           tweetTowers = new THREE.Object3D(),
           particleTexture,
           particleMaterial,
-          maxTowerCount = 8000,
-          range = 150,
+          maxTowerCount = 6000,
+          range = 100,
 
           socket = io();
 
       init();
 
       socket.on('tweet', function(tweet) {
-        //console.log('Tweet was ', tweet);
-        //console.log(tweet.text.length);
-        generateViewer({
+        generateTower({
           color: parseInt('0x'+ tweet.user.profile_background_color),
-          dimensions: {
-            x: 98,
-            y: 48
-          },
-          scene: scene,
           startingCoords: {
             x: getRandomArbitrary(-1*range, range),
             y: 0,
             z: getRandomArbitrary(-1*range, range)
           },
-          speed: {
-            x: 10,
-            y: 5,
-            z: 10
-          },
-          size: {
-            x: 50,
-            y: (tweet.text.length / 140) * 100,
-            z: 50
-          },
-          groupCoords: {
-            x: 40,
-            y: 10,
-            z: 0
-          },
-          rotation: {
-            x: 0,
-            y: 0,
-            z: 0
-          },
-          startTime: clock.getElapsedTime()
+          speed: 5,
+          size: (tweet.text.length / 140) * 100
         });
       });
 
@@ -134,15 +107,15 @@
         animate();
       }
 
-      function generateViewer(options) {
+      function generateTower(options) {
         var towerGeometry = new THREE.Geometry();
         
         var particleMovements = [
           {
             start: 0,
-            end: options.size.y,
+            end: options.size,
             x: 0,
-            y: options.speed.y,
+            y: options.speed,
             z: 0
           }
         ];
@@ -151,7 +124,7 @@
             currentCoords = {x: 0, y: 0, z: 0},
             startingCoords = options.startingCoords;
 
-        for (var i = 0; i < options.size.y; i++) {
+        for (var i = 0; i < options.size; i++) {
           if (particleMovements[currentParticleDirection] && startingCoords) {
             // If we're outside the current particleMovement range and there's another particleMovement to go to, go there.
             if ((particleMovements[currentParticleDirection].start > i || particleMovements[currentParticleDirection].end < i) && currentParticleDirection + 1 < particleMovements.length) {
@@ -196,7 +169,7 @@
         requestAnimationFrame(animate);
 
         update(clock.getDelta());
-        render(clock.getDelta());
+        render();
       }
 
       function resize() {

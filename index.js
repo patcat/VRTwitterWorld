@@ -2,9 +2,9 @@ var express = require('express'),
     app = express(),
     server = require('http').createServer(app),
     io = require('socket.io')(server),
-    cfg = require('./config.json'),
+    config = require('./config.json'),
     Twitter = require('node-tweet-stream'),
-    t = new Twitter(cfg),
+    t = new Twitter(config),
     port = process.env.PORT || 80,
     bodyParser = require('body-parser');
 
