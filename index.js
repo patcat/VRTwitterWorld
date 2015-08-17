@@ -30,12 +30,12 @@ server.listen(port, function() {
 
 t.track('pizza');
 t.on('tweet', function(tweet){
-  console.log('TWITTER: TWEETS CAME IN...');
+  console.log('Roger that. Tweets incoming!');
   console.log(tweet);
 
   io.emit('tweet', tweet);
 });
 
 t.on('error', function (err) {
-  console.log('Oh no ', err);
+  console.log('Brace yourself! We are goin doooowwwwwwnnnnnnnn! ', err);
 });
