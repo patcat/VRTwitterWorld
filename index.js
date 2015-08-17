@@ -1,23 +1,14 @@
-var http = require('http'),
-    express = require('express'),
+var express = require('express'),
     app = express(),
     server = require('http').createServer(app),
     io = require('socket.io')(server),
-    //io = require('socket.io')(80),
     cfg = require('./config.json'),
     Twitter = require('node-tweet-stream'),
     t = new Twitter(cfg),
     port = process.env.PORT || 80,
-    _ = require('underscore'),
-    bodyParser = require('body-parser'),
-    //errorHandler = require('errorhandler'),
-
-    receivedTweets = [],
-    loadedTweets,
-    foundIDs = [];
+    bodyParser = require('body-parser');
 
 app.use(bodyParser());
-//app.use(errorHandler()); // Only for dev
 app.set('jsonp callback', true);
 
 app.get('/', function(request, response) {
@@ -47,4 +38,4 @@ t.on('tweet', function(tweet){
 
 t.on('error', function (err) {
   console.log('Oh no ', err);
-})
+});
