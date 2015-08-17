@@ -1,15 +1,11 @@
 var express = require('express'),
     app = express(),
     server = require('http').createServer(app),
+    port = process.env.PORT || 80,
     io = require('socket.io')(server),
     config = require('./config.json'),
     Twitter = require('node-tweet-stream'),
-    t = new Twitter(config),
-    port = process.env.PORT || 80,
-    bodyParser = require('body-parser');
-
-app.use(bodyParser());
-app.set('jsonp callback', true);
+    t = new Twitter(config);
 
 app.get('/', function(request, response) {
   response.sendFile(__dirname + '/public/index.html');
