@@ -1,10 +1,10 @@
-VR Weather Particles
+VR Twitter World
 ========
 
-A relatively simple (yet still quite pretty) demo of glowing particles floating around your head. These particles move and change colour in response to the weather in various locations around the globe.
+A demo using Three.js to create a visualisation of real time tweets as particles.
 
-If you make something super wonderous and potentially more dizzying from this basic code, please do let me know! I'm on Twitter at @thatpatrickguy, or you can find me at http://www.patrickcatanzariti.com.
+If you make a really nice visualisation from this basic code, please do let me know! I'm on Twitter at @thatpatrickguy, or you can find me at http://www.patrickcatanzariti.com or http://www.patcat.com.
 
-Hooray for tech funtimes!
+I love 3D visualisations...
 
 PatCat
